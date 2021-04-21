@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+<!-- 
+	Controller에서 ModelAndView 인자로 뷰이름을 반환하면 InternalResourceViewResolverdml의 프로퍼티
+	prefix 속성에 지정된 /WEB-INF/views/ 폴더에서 ModelAndView 인자로 넘어온 뷰 이름에 해당하는 
+	JSP를 선택해서 Diaspatcher으로 보냅니다.
+	Controller가 지정한 뷰 이름 앞뒤로 prefix 프로퍼티와 suffix 프로퍼티를 추가한 값이 실제로 사용할 자원의 경로가 됩니다. 
+	 -->
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<!-- URL 요청명에 대해 /WEB-INF/views/ 폴더의 JSP를 선택합니다. -->
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+
+	<!-- methodNameResolver 프로퍼티에 
+	methodResolver를 주입을 해서 지정한 요청명에 대해 직접 메서드를 호출하게 됩니다. -->
+	<bean id="memberController"
+		class="com.ezen.member.controller.MemberControllerImpl">
+		<property name="methodNameResolver">
+			<ref local="methodResolver" /><!-- 여기서 주입 -->
+		</property>
+		<property name="memberService" ref="memberService" />
+	</bean>
+
+	<bean id="methodResolver"
+		class="org.springframework.web.servlet.mvc.multiaction.PropertiesMethodNameResolver">
+		<property name="mappings">
+			<props>
+			<!--  URL 요청명에 대해 동일한 이름의 메서드를 호출하도록 설정합니다.
+				memberService에서 찾음 이후 memberService에서 dao를 찾음 (메서드를 호출)-->
+				<prop key="/member/listMembers.do">listMembers</prop>
+				<prop key="/member/memberDetail.do">memberDetail</prop>
+				<prop key="/member/memberForm.do">memberForm</prop>
+				<prop key="/member/addMember.do">addMember</prop>
+				<prop key="/member/updateMember.do">updateMember</prop>
+				<prop key="/member/deleteMember.do">deleteMember</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="userUrlMapping"
+		class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="mappings">
+			<props>
+			<!-- URL 요청명이 /member/*.do로 시작하면 memberController 빈을 요청합니다. (객체 호출) -->
+				<prop key="/member/*.do">memberController</prop>
+			</props>
+		</property>
+	</bean>
+
+</beans>
